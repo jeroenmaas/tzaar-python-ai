@@ -3,6 +3,54 @@ class BoardResult:
     has_won = 1
     has_lost = 2
 
+class BoardStatsPerPlayer:
+    type1_count = None
+    type2_count = None
+    type3_count = None
+
+    def __init__(self, type1_count, type2_count, type3_count):
+        self.type1_count = type1_count
+        self.type2_count = type2_count
+        self.type3_count = type3_count
+
+    # Returns if the player has lost by the count of its items
+    def getHasLost(self):
+        if self.type1_count == 0 or self.type2_count == 0 or self.type3_count == 0:
+            return True
+        return False
+
+    def getLowestCount(self):
+        lowest = 500
+        if self.type1_count < lowest:
+            lowest=self.type1_count
+        if self.type2_count < lowest:
+            lowest=self.type2_count
+        if self.type3_count < lowest:
+            lowest=self.type3_count
+        return lowest
+
+class TurnInformation:
+    turn_number = None
+    player = None
+    opponent = None
+    turns = None
+
+    def __init__(self, turn_number):
+        self.turn_number = turn_number
+
+        self.turns = 2
+        if turn_number == 1:
+            self.turns = 1
+            self.player = BoardItemType.white
+            self.opponent = BoardItemType.black
+        elif turn_number % 4 == 2:
+            self.player = BoardItemType.black
+            self.opponent = BoardItemType.white
+        else:
+            self.player = BoardItemType.white
+            self.opponent = BoardItemType.black
+
+
 class BoardItemType:
     none = 0
     free = 1
@@ -136,8 +184,10 @@ def getItemsOfType(board, type):
 
 # Gets a fresh new board after a certain move took place.
 # Used for the AI to give a value to the board.
+import numpy as np
 def getBoardAfterMove(board, x, y, dest_x, dest_y):
-    new_board = board[:]
+    new_board=np.array(board, copy=True).tolist()
+
     origin = new_board[x][y]
     new_board[x][y] = BoardItem(BoardItemType.free, None, None)
     dest = new_board[dest_x][dest_y]
@@ -147,8 +197,7 @@ def getBoardAfterMove(board, x, y, dest_x, dest_y):
         if origin.weight >= dest.weight:
             new_board[dest_x][dest_y] = origin
     else:
-        new_board[dest_x][dest_y] = origin
-        origin.weight += 1
+        new_board[dest_x][dest_y] = BoardItem(origin.type, origin.sub_type, origin.weight+1)
 
     return new_board
 
@@ -170,20 +219,23 @@ def getBoardresult(board, player):
 # Returns true or false if a player has lost the game.
 # Currently only checks for available items on the board. Not if the player can move. This happends somewhere else.
 def hasPlayerLost(board, player):
-    player_positions = getItemsOfType(board, player)
-    type_1 = 0
-    type_2 = 0
-    type_3 = 0
-    for pos in player_positions:
-        item = board[pos[0]][pos[1]]
-        if item.sub_type == 1:
-            type_1 += 1
-        if item.sub_type == 2:
-            type_2 += 1
-        if item.sub_type == 3:
-            type_3 += 1
-
-    if type_1 == 0 or type_2 == 0 or type_3 == 0:
+    board_status = getBoardStatsForPlayer(board, player)
+    if board_status.getHasLost():
         return True
     else:
         return False
+
+def getBoardStatsForPlayer(board, player):
+    player_positions = getItemsOfType(board, player)
+    type1_count = 0
+    type2_count = 0
+    type3_count = 0
+    for pos in player_positions:
+        item = board[pos[0]][pos[1]]
+        if item.sub_type == 1:
+            type1_count += 1
+        if item.sub_type == 2:
+            type2_count += 1
+        if item.sub_type == 3:
+            type3_count += 1
+    return BoardStatsPerPlayer(type1_count, type2_count, type3_count)

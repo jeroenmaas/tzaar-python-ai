@@ -1,6 +1,6 @@
 from shared.queueUtils import *
 from shared.board import *
-import shared.randomButLegalAI
+import shared.simpleAI
 import json
 
 def jdefault(o):
@@ -21,7 +21,7 @@ def callback(ch, method, properties, body):
             board[x][y] = BoardItem(item['type'], item['sub_type'], item['weight'])
 
     turn_info = TurnInformation(turn)
-    output = shared.randomButLegalAI.playMove(board, turn_info)
+    output = shared.simpleAI.playMove(board, turn_info)
 
     new_state = {}
     new_state['game_id'] = game_id
@@ -31,7 +31,7 @@ def callback(ch, method, properties, body):
 
     if output['result'] == BoardResult.none:
         channel.basic_publish(exchange='',
-                               routing_key='tzaar_player_2_queue',
+                               routing_key='tzaar_player_1_queue',
                                body=json.dumps(new_state, default=jdefault))
         ch.basic_ack(delivery_tag = method.delivery_tag)
     else:
@@ -50,7 +50,7 @@ connection = getQueueConnection()
 channel = connection.channel()
 channel.basic_qos(prefetch_count=100)
 channel.basic_consume(callback,
-                      queue='tzaar_player_1_queue',
+                      queue='tzaar_player_2_queue',
                       no_ack=False)
 
 print(' [*] Waiting for messages. To exit press CTRL+C')

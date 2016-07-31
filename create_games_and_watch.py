@@ -5,7 +5,7 @@ connection = getQueueConnection()
 channel = connection.channel()
 #channel.queue_declare(queue='tzaar_player_1_queue')
 
-games_to_create = 1250
+games_to_create = 50
 
 import json
 def jdefault(o):

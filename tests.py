@@ -94,6 +94,19 @@ class TestAllMoves(unittest.TestCase):
         self.assertEqual([5, 3] in moves, True)
         self.assertEqual(len(moves), 5)
 
+class TestBoard(unittest.TestCase):
+    # Added this test because getBoardAfterMove changed original board.
+    def test_move_does_not_change_orignal(self):
+        board = getDefaultBoard()
+        new_board = getBoardAfterMove(board, 0, 1, 0, 0)
+        self.assertEqual(new_board[0][1] == board[0][1], False)
+    def test_move_happend(self):
+        board = getDefaultBoard()
+        new_board = getBoardAfterMove(board, 0, 1, 0, 0)
+        self.assertEqual(new_board[0][1].type, BoardItemType.free)
+        self.assertEqual(new_board[0][0].type, BoardItemType.black)
+
+
 if __name__ == '__main__':
     unittest.main()
 
