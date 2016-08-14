@@ -5,13 +5,19 @@ class BoardResult:
 
 class BoardStatsPerPlayer:
     type1_count = None
+    type1_max_weight = None
     type2_count = None
+    type2_max_weight = None
     type3_count = None
+    type3_max_weight = None
 
-    def __init__(self, type1_count, type2_count, type3_count):
+    def __init__(self, type1_count, type1_max_weight, type2_count, type2_max_weight, type3_count, type3_max_weight):
         self.type1_count = type1_count
+        self.type1_max_weight = type1_max_weight
         self.type2_count = type2_count
+        self.type2_max_weight = type2_max_weight
         self.type3_count = type3_count
+        self.type3_max_weight = type3_max_weight
 
     # Returns if the player has lost by the count of its items
     def getHasLost(self):
@@ -34,6 +40,7 @@ class TurnInformation:
     player = None
     opponent = None
     turns = None
+    allow_stacking = False
 
     def __init__(self, turn_number):
         self.turn_number = turn_number
@@ -43,13 +50,17 @@ class TurnInformation:
             self.turns = 1
             self.player = BoardItemType.white
             self.opponent = BoardItemType.black
-        elif turn_number % 4 == 2:
-            self.player = BoardItemType.black
-            self.opponent = BoardItemType.white
-        else:
+        elif turn_number % 4 <= 1:
             self.player = BoardItemType.white
             self.opponent = BoardItemType.black
+        else:
+            self.player = BoardItemType.black
+            self.opponent = BoardItemType.white
 
+        if turn_number == 1:
+            self.allow_stacking = False
+        else:
+            self.allow_stacking = turn_number % 2 == 1
 
 class BoardItemType:
     none = 0
@@ -111,6 +122,23 @@ def getDefaultBoard():
             x += 1
         y += 1
 
+    return board
+
+import random
+
+def getRandomBoard():
+    board = getDefaultBoard()
+
+    # We randomize by moving items 250 times. Lazy way of randomizing.
+    for _ in range(250):
+        white_positions = getItemsOfType(board, BoardItemType.white)
+        white_pos = random.choice(white_positions)
+        white_item = board[white_pos[0]][white_pos[1]]
+        black_positions = getItemsOfType(board, BoardItemType.black)
+        black_pos = random.choice(black_positions)
+        black_item = board[black_pos[0]][black_pos[1]]
+        board[white_pos[0]][white_pos[1]] = black_item
+        board[black_pos[0]][black_pos[1]] = white_item
     return board
 
 # Checks if its an valide move or that we need to stop looking.
@@ -228,14 +256,24 @@ def hasPlayerLost(board, player):
 def getBoardStatsForPlayer(board, player):
     player_positions = getItemsOfType(board, player)
     type1_count = 0
+    type1_max_weight = 0
     type2_count = 0
+    type2_max_weight = 0
     type3_count = 0
+    type3_max_weight = 0
+
     for pos in player_positions:
         item = board[pos[0]][pos[1]]
         if item.sub_type == 1:
             type1_count += 1
+            if item.weight > type1_max_weight:
+                type1_max_weight = item.weight
         if item.sub_type == 2:
             type2_count += 1
+            if item.weight > type2_max_weight:
+                type2_max_weight = item.weight
         if item.sub_type == 3:
             type3_count += 1
-    return BoardStatsPerPlayer(type1_count, type2_count, type3_count)
+            if item.weight > type3_max_weight:
+                type3_max_weight = item.weight
+    return BoardStatsPerPlayer(type1_count, type1_max_weight, type2_count, type2_max_weight, type3_count, type3_max_weight)

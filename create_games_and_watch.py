@@ -16,6 +16,7 @@ def jdefault(o):
 for i in range(0, games_to_create):
     data = {}
     data['board'] = getDefaultBoard()
+    data['original_board'] = data['board']
     data['turn'] = 1
     data['game_id'] = i
     data['debug_moves'] = []

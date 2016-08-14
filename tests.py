@@ -86,7 +86,6 @@ class TestAllMoves(unittest.TestCase):
     def test_integration2(self):
         board = getDefaultBoard()
         moves = getPossibleMoves(board, 4, 3, allow_stacking=True)
-        print(moves)
         self.assertEqual([3, 3] in moves, True)
         self.assertEqual([3, 2] in moves, True)
         self.assertEqual([5, 4] in moves, True)
@@ -106,6 +105,37 @@ class TestBoard(unittest.TestCase):
         self.assertEqual(new_board[0][1].type, BoardItemType.free)
         self.assertEqual(new_board[0][0].type, BoardItemType.black)
 
+class TestTurnPosition(unittest.TestCase):
+    def test_turn_1(self):
+        info = TurnInformation(1)
+        self.assertEqual(info.player, BoardItemType.white)
+        self.assertEqual(info.opponent, BoardItemType.black)
+        self.assertEqual(info.allow_stacking, False)
+    def test_turn_2(self):
+        info = TurnInformation(2)
+        self.assertEqual(info.player, BoardItemType.black)
+        self.assertEqual(info.opponent, BoardItemType.white)
+        self.assertEqual(info.allow_stacking, False)
+    def test_turn_3(self):
+        info = TurnInformation(3)
+        self.assertEqual(info.player, BoardItemType.black)
+        self.assertEqual(info.opponent, BoardItemType.white)
+        self.assertEqual(info.allow_stacking, True)
+    def test_turn_4(self):
+        info = TurnInformation(4)
+        self.assertEqual(info.player, BoardItemType.white)
+        self.assertEqual(info.opponent, BoardItemType.black)
+        self.assertEqual(info.allow_stacking, False)
+    def test_turn_5(self):
+        info = TurnInformation(5)
+        self.assertEqual(info.player, BoardItemType.white)
+        self.assertEqual(info.opponent, BoardItemType.black)
+        self.assertEqual(info.allow_stacking, True)
+    def test_turn_6(self):
+        info = TurnInformation(6)
+        self.assertEqual(info.player, BoardItemType.black)
+        self.assertEqual(info.opponent, BoardItemType.white)
+        self.assertEqual(info.allow_stacking, False)
 
 if __name__ == '__main__':
     unittest.main()
