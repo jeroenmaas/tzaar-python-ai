@@ -1,6 +1,6 @@
 from shared.queueUtils import *
 from shared.board import *
-import shared.simpleAI2
+import shared.simpleAI3
 import json
 
 def jdefault(o):
@@ -24,7 +24,7 @@ def callback(ch, method, properties, body):
 
     import time
     start_time = time.time()
-    output = shared.simpleAI2.playMove(board, turn_info)
+    output = shared.simpleAI3.playMove(board, turn_info)
     print("--- %s seconds ---" % (time.time() - start_time))
 
     new_state = {}
@@ -55,7 +55,7 @@ def callback(ch, method, properties, body):
 
 connection = getQueueConnection()
 channel = connection.channel()
-channel.basic_qos(prefetch_count=100)
+channel.basic_qos(prefetch_count=10)
 channel.basic_consume(callback,
                       queue='tzaar_player_1_queue',
                       no_ack=False)

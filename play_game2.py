@@ -28,6 +28,7 @@ def callback(ch, method, properties, body):
     new_state['board'] = output['board']
     new_state['turn'] = turn_info.turn_number + turn_info.turns
     new_state['debug_moves'] = debug_moves + output['moves']
+    new_state['original_board'] = dataContainer['original_board']
 
     if output['result'] == BoardResult.none:
         channel.basic_publish(exchange='',

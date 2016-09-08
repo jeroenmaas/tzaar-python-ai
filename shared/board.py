@@ -277,3 +277,11 @@ def getBoardStatsForPlayer(board, player):
             if item.weight > type3_max_weight:
                 type3_max_weight = item.weight
     return BoardStatsPerPlayer(type1_count, type1_max_weight, type2_count, type2_max_weight, type3_count, type3_max_weight)
+
+
+def convertJSONBoardToObjBoard(json_board):
+    for x in range(0, board_size):
+        for y in range(0, board_size):
+            item = json_board[x][y]
+            json_board[x][y] = BoardItem(item['type'], item['sub_type'], item['weight'])
+    return json_board
