@@ -3,7 +3,7 @@ from shared.board import *
 
 mysql_con = getMysqlConnection()
 cursor = mysql_con.cursor()
-query = 'select * from samples_2 where wins+loses > 50'
+query = 'select * from samples_3 where wins+loses > 50'
 cursor.execute(query)
 training_data_list = cursor.fetchall()
 
@@ -31,5 +31,5 @@ clf = RandomForestRegressor(n_estimators=10)
 clf = clf.fit(feature_list, result_list)
 
 import pickle
-clr_f = open("classifiers/sample2.pickle", "wb")
+clr_f = open("classifiers/sample3.pickle", "wb")
 pickle.dump(clf, clr_f)

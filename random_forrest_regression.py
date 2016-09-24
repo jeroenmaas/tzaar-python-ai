@@ -3,7 +3,7 @@ from shared.board import *
 
 mysql_con = getMysqlConnection()
 cursor = mysql_con.cursor()
-query = 'select * from samples_1 where wins+loses > 50'
+query = 'select * from samples_3 where wins+loses > 25'
 cursor.execute(query)
 training_data_list = cursor.fetchall()
 

@@ -1,6 +1,6 @@
 from shared.queueUtils import *
 from shared.board import *
-import shared.simpleAI4
+import shared.simpleAI6
 import json
 
 def jdefault(o):
@@ -24,7 +24,7 @@ def callback(ch, method, properties, body):
 
     import time
     start_time = time.time()
-    output = shared.simpleAI4.playMove(board, turn_info)
+    output = shared.simpleAI6.playMove(board, turn_info)
     print("--- %s seconds ---" % (time.time() - start_time))
 
     new_state = {}

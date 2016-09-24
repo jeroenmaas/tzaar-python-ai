@@ -210,23 +210,52 @@ def getItemsOfType(board, type):
                 positions.append([x,y])
     return positions
 
+def getItems(board):
+    items = []
+    for x in range(0, board_size):
+        for y in range(0, board_size):
+            item = board[x][y]
+            if item.type is BoardItemType.black or item.type is BoardItemType.white:
+                items.append(item)
+    return items
+
+def getAllMoves(board, type, allow_stacking):
+    positions = getItemsOfType(board, type)
+    all_options = []
+    for pos_info in positions:
+        options = getPossibleMoves(board, pos_info[0], pos_info[1], allow_stacking=allow_stacking)
+        for option in options:
+            all_options.append([pos_info, option])
+    return all_options
+
 # Gets a fresh new board after a certain move took place.
 # Used for the AI to give a value to the board.
 import numpy as np
-def getBoardAfterMove(board, x, y, dest_x, dest_y):
-    new_board=np.array(board, copy=True).tolist()
+import copy
+def getBoardAfterMove(board, origin_x, origin_y, dest_x, dest_y, items=[]):
+    # new_board = np.array(board, copy=True).tolist()
+    new_board = [[], [], [], [], [], [], [], [], []]
+    for i in range(len(board)):
+        column = board[i]
+        new_board[i] = column[:]
 
-    origin = new_board[x][y]
-    new_board[x][y] = BoardItem(BoardItemType.free, None, None)
+    origin = new_board[origin_x][origin_y]
+    new_board[origin_x][origin_y] = BoardItem(BoardItemType.free, None, None)
     dest = new_board[dest_x][dest_y]
     if dest.type != origin.type:
         # Check if origin is powerfull enough to take out the destination.
         # If not the case then its by by origin.
         if origin.weight >= dest.weight:
             new_board[dest_x][dest_y] = origin
+            if dest in items:
+                items.remove(dest)
     else:
         new_board[dest_x][dest_y] = BoardItem(origin.type, origin.sub_type, origin.weight+1)
-
+        if dest in items:
+            items.remove(dest)
+        if origin in items:
+            items.remove(origin)
+            items.append(new_board[dest_x][dest_y])
     return new_board
 
 # Returns BoardResult in players perspective.
@@ -252,6 +281,27 @@ def hasPlayerLost(board, player):
         return True
     else:
         return False
+
+def getBoardStats(items):
+    stat_dic = {}
+    stat_dic[BoardItemType.black] = BoardStatsPerPlayer(0,0,0,0,0,0)
+    stat_dic[BoardItemType.white] = BoardStatsPerPlayer(0,0,0,0,0,0)
+
+    for item in items:
+        stats = stat_dic[item.type]
+        if item.sub_type == 1:
+            stats.type1_count += 1
+            if item.weight > stats.type1_max_weight:
+                stats.type1_max_weight = item.weight
+        if item.sub_type == 2:
+            stats.type2_count += 1
+            if item.weight > stats.type2_max_weight:
+                stats.type2_max_weight = item.weight
+        if item.sub_type == 3:
+            stats.type3_count += 1
+            if item.weight > stats.type3_max_weight:
+                stats.type3_max_weight = item.weight
+    return stat_dic
 
 def getBoardStatsForPlayer(board, player):
     player_positions = getItemsOfType(board, player)

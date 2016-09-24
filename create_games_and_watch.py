@@ -5,7 +5,7 @@ connection = getQueueConnection()
 channel = connection.channel()
 #channel.queue_declare(queue='tzaar_player_1_queue')
 
-games_to_create = 10
+games_to_create = 20
 
 import json
 def jdefault(o):
@@ -13,16 +13,19 @@ def jdefault(o):
         return list(o)
     return o.__dict__
 
-for i in range(0, games_to_create):
-    data = {}
-    data['board'] = getRandomBoard()
-    data['original_board'] = data['board']
-    data['turn'] = 1
-    data['game_id'] = i
-    data['debug_moves'] = []
-    channel.basic_publish(exchange='',
-                      routing_key='tzaar_player_1_queue',
-                      body=json.dumps(data, default=jdefault))
+
+def buildGames():
+    print('buildGames')
+    for i in range(0, games_to_create):
+        data = {}
+        data['board'] = getRandomBoard()
+        data['original_board'] = data['board']
+        data['turn'] = 1
+        data['game_id'] = i
+        data['debug_moves'] = []
+        channel.basic_publish(exchange='',
+                          routing_key='tzaar_player_1_queue',
+                          body=json.dumps(data, default=jdefault))
 
 
 stats = {}
@@ -55,6 +58,7 @@ def callback(ch, method, properties, body):
         new_board = getBoardAfterMove(new_board, item[0][0], item[0][1], item[1][0], item[1][1])
         turn += 1
         turn_info = TurnInformation(turn)
+        print(turn_info.player)
         if turn_info.player == BoardItemType.black:
             player_stats = getBoardStatsForPlayer(new_board, BoardItemType.black)
             opponent_stats = getBoardStatsForPlayer(new_board, BoardItemType.white)
@@ -77,12 +81,14 @@ def callback(ch, method, properties, body):
         new_array.append(opponent_stats.type3_count)
         new_array.append(opponent_stats.type3_max_weight)
         feature_str = ''.join('{:01x}'.format(x) for x in new_array)
+        print(feature_str)
+        print(has_won)
 
         cursor = mysql_con.cursor()
         wins = str(int(has_won))
         loses = str(int(has_won == False))
 
-        query = 'INSERT INTO samples_2 (features, wins, loses) VALUES ("' + feature_str + '", ' + wins + ', ' + loses + ')'
+        query = 'INSERT INTO samples_3 (features, wins, loses) VALUES ("' + feature_str + '", ' + wins + ', ' + loses + ')'
         query += ' ON DUPLICATE KEY UPDATE'
         if has_won:
             query += ' wins=wins+1'
@@ -98,9 +104,10 @@ def callback(ch, method, properties, body):
         print("White wins: " + str(stats['white_wins']))
         print("Average turns: " + str(stats['total_turns'] / games_to_create))
         print("Time: " + str(time.time() - stats['start']))
-        mysql_con.close()
+        stats['count'] = 0
+        #buildGames()
 
-
+buildGames()
 channel.basic_qos(prefetch_count=100)
 channel.basic_consume(callback,
                       queue='tzaar_results',

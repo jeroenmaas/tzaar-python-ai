@@ -2,17 +2,13 @@ from shared.board import *
 import random
 from pprint import pprint
 
-from shared.board import *
-import random
-from pprint import pprint
-
 def playMove(board, turnInfo: TurnInformation):
     turns = 2
     if turnInfo.turns == 1:
         turns = 1
 
     moves_info = alphabeta(board, turns, -1, 101, turnInfo.player, turnInfo.turn_number, [], getItems(board))
-
+    print(moves_info[0])
     # This is the case where there are no more moves left to make.
     if moves_info[0] == 0:
         output = {}
@@ -25,13 +21,11 @@ def playMove(board, turnInfo: TurnInformation):
     if turnInfo.turns >= 1:
         chosen_option = moves_info[1][0]
         moves.append(chosen_option)
-        print(chosen_option)
         board = getBoardAfterMove(board, chosen_option[0][0], chosen_option[0][1], chosen_option[1][0], chosen_option[1][1])
 
     if turnInfo.turns >= 2:
         chosen_option = moves_info[1][1]
         moves.append(chosen_option)
-        print(chosen_option)
         board = getBoardAfterMove(board, chosen_option[0][0], chosen_option[0][1], chosen_option[1][0], chosen_option[1][1])
 
     output = {}
@@ -98,7 +92,16 @@ def alphabeta(board, depth, a, b, player, turn_number, returned_options, items):
         returned_options.append(moves)
     return [v, returned_options]
 
+try:
+    import pickle
+    clf_f = open("classifiers/sample2_2.pickle", "rb")
+    clf = pickle.load(clf_f)
+except OSError as e:
+    print("No preloaded classifier available. Please build a new one.")
+    quit()
+
 #return between 0 and 1. 1 is very good and 0 is very bad.
+cache = {}
 def rateBoardForPlayer(board, player: BoardItemType, opponent: BoardItemType, items):
     stats = getBoardStats(items)
     stats_player = stats[player]
@@ -108,12 +111,25 @@ def rateBoardForPlayer(board, player: BoardItemType, opponent: BoardItemType, it
     elif stats_player.getHasLost():
         return 0
 
-    lowest_player_count = stats_player.getLowestCount()
-    lowest_opponent_count = stats_opponent.getLowestCount()
-    diff = lowest_player_count - lowest_opponent_count
-    if diff > 0:
-        return 0.5 + (0.5 - 0.45/diff)
-    elif diff < 0:
-        return 0.45/abs(diff)
-    else:
-        return 0.5
+    features = []
+    features.append(stats_player.type1_count)
+    features.append(stats_player.type1_max_weight)
+    features.append(stats_player.type2_count)
+    features.append(stats_player.type2_max_weight)
+    features.append(stats_player.type3_count)
+    features.append(stats_player.type3_max_weight)
+    features.append(stats_opponent.type1_count)
+    features.append(stats_opponent.type1_max_weight)
+    features.append(stats_opponent.type2_count)
+    features.append(stats_opponent.type2_max_weight)
+    features.append(stats_opponent.type3_count)
+    features.append(stats_opponent.type3_max_weight)
+
+    feature_str = ''.join('{:01x}'.format(x) for x in features)
+    if feature_str in cache:
+        return cache[feature_str]
+
+    value = clf.predict([features])[0]
+    cache[feature_str] = value
+
+    return value

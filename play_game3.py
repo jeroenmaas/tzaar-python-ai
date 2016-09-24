@@ -34,6 +34,20 @@ def callback(ch, method, properties, body):
     new_state['debug_moves'] = debug_moves + output['moves']
     new_state['original_board'] = dataContainer['original_board']
 
+    stats = getBoardStats(getItems(output['board']))
+    print(stats[turn_info.player].type1_count)
+    print(stats[turn_info.player].type1_max_weight)
+    print(stats[turn_info.player].type2_count)
+    print(stats[turn_info.player].type2_max_weight)
+    print(stats[turn_info.player].type3_count)
+    print(stats[turn_info.player].type3_max_weight)
+    print(stats[turn_info.opponent].type1_count)
+    print(stats[turn_info.opponent].type1_max_weight)
+    print(stats[turn_info.opponent].type2_count)
+    print(stats[turn_info.opponent].type2_max_weight)
+    print(stats[turn_info.opponent].type3_count)
+    print(stats[turn_info.opponent].type3_max_weight)
+
     if output['result'] == BoardResult.none:
         channel.basic_publish(exchange='',
                                routing_key='tzaar_player_2_queue',
